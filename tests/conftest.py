@@ -4,5 +4,7 @@ from app.models import User
  
 @pytest.fixture(scope='module')
 def new_user():
-    user = User('patkennedy79@gmail.com', 'FlaskIsAwesome')
-    return user
+    u = User(username='esther')
+    u.set_password('password1')
+    return u
+    
