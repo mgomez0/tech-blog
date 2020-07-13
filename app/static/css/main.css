@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+    background: blanchedalmond;
+    font-family: monospace;
+    font-size: 18;
+}
+.head_bar {
+    color: darkolivegreen;
+    
+}
+
+h1 {
+    color: darkolivegreen;
+}
+
+a {
+    color: darkolivegreen;
+    text-decoration:underline;
+}
+
+/* unvisited link */
+
+a:link {
+    color: darkolivegreen;
+}
+
+/* mouse over link */
+
+a:hover {
+    color: rebeccapurple;
+}
+
+/* selected link */
+
+a:active {
+    color: blue;
+}
+
+p {
+    color: rgb(50, 63, 77);
+    text-align: center;
+}
+

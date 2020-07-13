@@ -1,34 +1,87 @@
-from app import db
+from app import app, flask_db, db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
-from app import login
 from hashlib import md5
+from flask import (Flask, abort, flash, Markup, redirect, render_template,
+                   request, Response, session, url_for)
+from markdown import markdown
+from markdown.extensions.codehilite import CodeHiliteExtension
+from markdown.extensions.extra import ExtraExtension
+from micawber import bootstrap_basic, parse_html
+from micawber.cache import Cache as OEmbedCache
+from peewee import *
+from playhouse.flask_utils import FlaskDB, get_object_or_404, object_list
+from playhouse.sqlite_ext import *
+import functools
+import os
+import re
+import urllib
 
-followers = db.Table('followers',
-    db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
-    db.Column('followed_id', db.Integer, db.ForeignKey('user.id'))
-)
 
-@login.user_loader
-def load_user(id):
-    return User.query.get(int(id))
+           
 
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), index=True, unique=True)
-    email = db.Column(db.String(120), index=True, unique=True)
-    password_hash = db.Column(db.String(128))
-    posts = db.relationship('Post', backref='author', lazy='dynamic')
-    about_me = db.Column(db.String(140))
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+class Entry(flask_db.Model):
+    title = CharField()
+    slug = CharField(unique=True)
+    content = TextField()
+    published = BooleanField(index=True)
+    timestamp = DateTimeField(default=datetime.now, index=True)
 
-    ### :param secondary: refers to association table created above
-    followed = db.relationship(
-        'User', secondary=followers,
-        primaryjoin=(followers.c.follower_id == id),
-        secondaryjoin=(followers.c.followed_id == id),
-        backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
+    def __repr__(self):
+        return '<Post {}>'.format(self.body)
+    
+    @property
+    def html_content(self):
+        hilite = CodeHiliteExtension(linenums=False, css_class='highlight')
+        extras = ExtraExtension()
+        markdown_content = markdown(self.content, extensions=[hilite, extras])
+        oembed_content = parse_html(
+            markdown_content,
+            urlize_all=True,
+            maxwidth=app.config['SITE_WIDTH'])
+        return Markup(oembed_content)
+    
+    
+    @classmethod
+    def public(cls):
+        return Entry.select().where(Entry.published == True)
+
+    @classmethod
+    def search(cls, query):
+        words = [word.strip() for word in query.split() if word.strip()]
+        if not words:
+            # Return empty query.
+            return Entry.query.get(0)
+
+        else:
+            search = ' '.join(words)
+
+        return (Entry
+                .select(Entry, FTSEntry.rank().alias('score'))
+                .join(FTSEntry, on=(Entry.id == FTSEntry.docid))
+                .where(
+                    (Entry.published == True) &
+                    (FTSEntry.match(search)))
+                .order_by(SQL('score')))
+    
+    @classmethod
+    def drafts(cls):
+        return Entry.select().where(Entry.published == False)
+
+
+class FTSEntry(FTSModel):
+    content = SearchField()
+
+    class Meta:
+        database = db
+
+class User(flask_db.Model):
+    username = CharField(unique=True)
+    email = CharField(unique=True)
+    password_hash = CharField()
+    posts = ForeignKeyField(Entry, backref='author')
+    about_me = CharField()
+    last_seen =  DateTimeField(default=datetime.now, index=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -43,32 +96,3 @@ class User(UserMixin, db.Model):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return 'https://www.gravatar.com/avatar/{}?d=identicon&s={}'.format(
         digest, size)
-    
-    def follow(self, user):
-        if not self.is_following(user):
-            self.followed.append(user)
-    
-    def unfollow(self, user):
-        if self.is_following(user):
-            self.followed.remove(user)
-        
-    def is_following(self, user):
-        return self.followed.filter(
-            followers.c.followed_id == user.id).count() > 0
-    
-    def followed_posts(self):
-        followed = Post.query.join(
-            followers, (followers.c.followed_id == Post.user_id)).filter(
-                followers.c.follower_id == self.id)
-        own = Post.query.filter_by(user_id=self.id)
-        return followed.union(own).order_by(Post.timestamp.desc())
-            
-
-class Post(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
-        body = db.Column(db.String(140))
-        timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-        user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-        def __repr__(self):
-            return '<Post {}>'.format(self.body)

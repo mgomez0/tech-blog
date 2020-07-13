@@ -1,35 +1,73 @@
-<html>
-
 <head>
-    {% if title %}
-    <title>{{ title }} - technical blog</title>
-    {% else %}
-    <title>welcome to the world of the curios hacker</title>
-    {% endif %}
+    <title>Blog</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="/static/css/output.css">
 </head>
 
+
 <body>
-    <div>
-        Microblog:
-        <a href="{{ url_for('index') }}">Home</a>
-        {% if current_user.is_anonymous %}
-        <a href="{{ url_for('login') }}">Login</a>
-        {% else %}
-        <a href="{{ url_for('user', username=current_user.username) }}">Profile</a>
-        <a href="{{ url_for('logout') }}">Logout</a>
-        {% endif %}
-      </div>
-    <hr>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <ul>
-        {% for message in messages %}
-        <li>{{ message }}</li>
-        {% endfor %}
+    {% if session.logged_in %}
+    <ul class="flex border-b">
+        <li class="-mb-px mr-1">
+            <a class="inline-block border-l border-t border-r rounded-t py-2 px-4 font-semibold" href="#">Active</a>
+        </li>
+        <li class="mr-1">
+            <a class="py-2 px-4 font-semibold" href="{{ url_for('drafts') }}">Drafts</a>
+        </li>
+        <li class="mr-1">
+            <a class="py-2 px-4 font-semibold" href="{{ url_for('create') }}">Create</a>
+        </li>
+        <li class="mr-1">
+            <a class="py-2 px-4 font-semibold" href="{{ url_for('logout') }}">logout</a>
+        </li>
     </ul>
     {% endif %}
-    {% endwith %}
-    {% block content %}{% endblock %}
+
+    <!-- <div class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+            {% if session.logged_in %}
+            <li><a href="{{ url_for('drafts') }}">Drafts</a></li>
+            <li><a href="{{ url_for('create') }}">Create Entry</a></li>
+            <li><a href="{{ url_for('logout') }}">Log out</a></li>
+            {% endif %}
+            {% block extra_header %}{% endblock %}
+        </ul> -->
+    {% block search_bar %}
+    <form action="{{ url_for('index') }}" class="navbar-form navbar-right" id="search-form" method="get" role="search">
+        <div class="form-group">
+            <input class="form-control" name="q" placeholder="Search" type="text"
+                value="{% if search %}{{ search }}{% endif %}">
+        </div>
+    </form>
+    {% endblock %}
+    </div>
+    </div>
+    </div>
+
+    <div class="container">
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="alert alert-{{ category }} alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            <p>{{ message }}</p>
+        </div>
+        {% endfor %}
+
+        {% block page_header %}
+        <div class="page-header">
+            <h1>{% block content_title %}{% endblock %}</h1>
+        </div>
+        {% endblock %}
+
+        {% block content %}{% endblock %}
+
+        <footer>
+            <hr />
+            <p>Michael Gomez, &copy; 2020</p>
+        </footer>
+    </div>
 </body>
 
 </html>

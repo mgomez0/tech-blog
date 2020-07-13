@@ -1,0 +1,28 @@
+{
+  "name": "techblog",
+  "version": "1.0.0",
+  "description": "A blog built on Flask",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "postcss app/static/css/main.css -o app/static/css/output.css"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mgomez0/tech-blog.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mgomez0/tech-blog/issues"
+  },
+  "homepage": "https://github.com/mgomez0/tech-blog#readme",
+  "dependencies": {
+    "autoprefixer": "^9.8.4",
+    "postcss-cli": "^7.1.1",
+    "tailwindcss": "^1.4.6"
+  }
+}
