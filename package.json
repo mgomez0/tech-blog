@@ -22,6 +22,7 @@
   "homepage": "https://github.com/mgomez0/tech-blog#readme",
   "dependencies": {
     "autoprefixer": "^9.8.4",
+    "live-server": "^1.2.1",
     "postcss-cli": "^7.1.1",
     "tailwindcss": "^1.4.6"
   }

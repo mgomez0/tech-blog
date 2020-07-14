@@ -66,7 +66,7 @@ def login():
     
 @app.route('/logout')
 def logout():
-    if request.method == 'POST':
+    if request.method == 'GET':
         session.clear()
         return redirect(url_for('login'))
     return render_template('logout.html')

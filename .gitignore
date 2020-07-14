@@ -1,3 +1,4 @@
 blogenv
 migrations
 *.db
+__pycache__
