@@ -3,28 +3,28 @@
 @tailwind utilities;
 
 html {
-    background: blanchedalmond;
+    background: #0B0C10;
     font-family: monospace;
     font-size: 18;
 }
 .head_bar {
-    color: darkolivegreen;
+    color:#66FCF1;
     
 }
 
 h1 {
-    color: darkolivegreen;
+    color:#66FCF1;
 }
 
 a {
-    color: darkolivegreen;
+    color:#66FCF1;
     text-decoration:underline;
 }
 
 /* unvisited link */
 
 a:link {
-    color: darkolivegreen;
+    color:#66FCF1;
 }
 
 /* mouse over link */
@@ -40,7 +40,16 @@ a:active {
 }
 
 p {
-    color: rgb(50, 63, 77);
+    color: #718096;
     text-align: center;
+}
+
+label {
+    color: #718096;
+
+}
+
+button {
+    color: #718096;
 }
 
